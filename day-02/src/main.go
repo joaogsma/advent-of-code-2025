@@ -27,6 +27,26 @@ func main() {
 	fmt.Printf("Part 2: %d\n", Part2(ranges))
 }
 
+func Part1(ranges []Range) uint64 {
+	sum := uint64(0)
+	for _, e := range ranges {
+		for _, patternId := range FindPatternInputs(e, IsPatternTwice) {
+			sum += patternId
+		}
+	}
+	return sum
+}
+
+func Part2(ranges []Range) uint64 {
+	sum := uint64(0)
+	for _, e := range ranges {
+		for _, patternId := range FindPatternInputs(e, IsPatternAtLeastTwice) {
+			sum += patternId
+		}
+	}
+	return sum
+}
+
 func ReadLines(filename string) []string {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -76,26 +96,6 @@ func FindPatternInputs(r Range, isPattern func(x uint64) bool) []uint64 {
 	return result
 }
 
-func Part1(ranges []Range) uint64 {
-	sum := uint64(0)
-	for _, e := range ranges {
-		for _, patternId := range FindPatternInputs(e, IsPatternTwice) {
-			sum += patternId
-		}
-	}
-	return sum
-}
-
-func Part2(ranges []Range) uint64 {
-	sum := uint64(0)
-	for _, e := range ranges {
-		for _, patternId := range FindPatternInputs(e, IsPatternAtLeastTwice) {
-			sum += patternId
-		}
-	}
-	return sum
-}
-
 func IsPatternTwice(value uint64) bool {
 	str := strconv.FormatUint(value, 10)
 	if len(str)%2 == 1 {
@@ -107,11 +107,32 @@ func IsPatternTwice(value uint64) bool {
 	return false
 }
 
+//// Naive solution
+// func IsPatternAtLeastTwice(value uint64) bool {
+// 	valueStr := strconv.FormatUint(value, 10)
+// 	for i := 1; i <= len(valueStr)/2; i++ {
+// 		piece := valueStr[:i]
+// 		if strings.ReplaceAll(valueStr, piece, "") == "" {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
 func IsPatternAtLeastTwice(value uint64) bool {
-	valueStr := strconv.FormatUint(value, 10)
-	for i := 1; i <= len(valueStr)/2; i++ {
-		piece := valueStr[:i]
-		if strings.ReplaceAll(valueStr, piece, "") == "" {
+	for base := uint64(10); base < value; base *= 10 {
+		piece := value % base
+		// When the first number is 0 it will still work, because any number mod 1 is 0
+		previousPiece := value % (base / 10)
+		if piece == previousPiece {
+			continue
+		}
+
+		isPattern := true
+		for current := value / base; current > 0 && isPattern; current /= base {
+			isPattern = isPattern && (current%base) == piece
+		}
+		if isPattern {
 			return true
 		}
 	}
