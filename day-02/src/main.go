@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -40,7 +41,7 @@ func Part1(ranges []Range) uint64 {
 func Part2(ranges []Range) uint64 {
 	sum := uint64(0)
 	for _, e := range ranges {
-		for _, patternId := range FindPatternInputs(e, IsPatternAtLeastTwice) {
+		for _, patternId := range FindPatternInputs(e, IsPatternAtLeastTwiceLog) {
 			sum += patternId
 		}
 	}
@@ -137,4 +138,29 @@ func IsPatternAtLeastTwice(value uint64) bool {
 		}
 	}
 	return false
+}
+
+func IsPatternAtLeastTwiceLog(value uint64) bool {
+	totalDigits := NumDigits(value)
+	for digits, base := uint(1), uint64(10); digits <= totalDigits/2; digits, base = digits+1, base*10 {
+		piece := value % base
+		// When the first number is 0 it will still work, because any number mod 1 is 0
+		previousPiece := value % (base / 10)
+		if piece == previousPiece {
+			continue
+		}
+
+		isPattern := true
+		for current := value / base; current > 0 && isPattern; current /= base {
+			isPattern = isPattern && (current%base) == piece
+		}
+		if isPattern {
+			return true
+		}
+	}
+	return false
+}
+
+func NumDigits(value uint64) uint {
+	return 1 + uint(math.Log10(float64(value)))
 }
