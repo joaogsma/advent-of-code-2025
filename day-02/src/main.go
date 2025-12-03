@@ -41,7 +41,7 @@ func Part1(ranges []Range) uint64 {
 func Part2(ranges []Range) uint64 {
 	sum := uint64(0)
 	for _, e := range ranges {
-		for _, patternId := range FindPatternInputs(e, IsPatternAtLeastTwiceLog) {
+		for _, patternId := range FindPatternInputs(e, IsPatternAtLeastTwice) {
 			sum += patternId
 		}
 	}
@@ -108,55 +108,44 @@ func IsPatternTwice(value uint64) bool {
 	return false
 }
 
-//// Naive solution
-// func IsPatternAtLeastTwice(value uint64) bool {
-// 	valueStr := strconv.FormatUint(value, 10)
-// 	for i := 1; i <= len(valueStr)/2; i++ {
-// 		piece := valueStr[:i]
-// 		if strings.ReplaceAll(valueStr, piece, "") == "" {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
-
 func IsPatternAtLeastTwice(value uint64) bool {
-	for base := uint64(10); base < value; base *= 10 {
-		piece := value % base
-		// When the first number is 0 it will still work, because any number mod 1 is 0
-		previousPiece := value % (base / 10)
-		if piece == previousPiece {
+	totalDigits := NumDigits(value)
+	previousPiece := uint64(0)
+	for digits, mask := uint(1), uint64(10); digits <= totalDigits/2; digits, mask = digits+1, mask*10 {
+		piece := value % mask
+		newDigitIsZero := piece == previousPiece
+		if newDigitIsZero {
 			continue
 		}
-
 		isPattern := true
-		for current := value / base; current > 0 && isPattern; current /= base {
-			isPattern = isPattern && (current%base) == piece
+		// Dividing by the mask shifts the number right by that many digits
+		for current := value / mask; current > 0 && isPattern; current /= mask {
+			isPattern = isPattern && (current%mask) == piece
 		}
 		if isPattern {
 			return true
 		}
+		previousPiece = piece
 	}
 	return false
 }
 
-func IsPatternAtLeastTwiceLog(value uint64) bool {
+func IsPatternAtLeastTwiceAlt(value uint64) bool {
 	totalDigits := NumDigits(value)
-	for digits, base := uint(1), uint64(10); digits <= totalDigits/2; digits, base = digits+1, base*10 {
-		piece := value % base
-		// When the first number is 0 it will still work, because any number mod 1 is 0
-		previousPiece := value % (base / 10)
-		if piece == previousPiece {
+	previousPiece := uint64(0)
+	for digits, mask := uint(1), uint64(10); digits <= totalDigits/2; digits, mask = digits+1, mask*10 {
+		piece := value % mask
+		newDigitIsZero := piece == previousPiece
+		if newDigitIsZero {
 			continue
 		}
-
-		isPattern := true
-		for current := value / base; current > 0 && isPattern; current /= base {
-			isPattern = isPattern && (current%base) == piece
+		expected := piece
+		for ; expected < value; expected = mask*expected + piece {
 		}
-		if isPattern {
+		if value == expected {
 			return true
 		}
+		previousPiece = piece
 	}
 	return false
 }
