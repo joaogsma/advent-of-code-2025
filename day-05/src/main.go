@@ -4,16 +4,22 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+	"time"
 )
 
 func main() {
 	lines := ReadLines("input.txt")
 	ranges, ids := ParseLines(lines)
-	fmt.Printf("Part 1: %d\n", Part1(ranges, ids))
+	fmt.Printf("Part 1: %d\n", FunPart1(ranges, ids))
 	fmt.Printf("Part 2: %d\n", Part2(ranges))
 }
 
-func Part1(ranges []Range[uint64], ids []uint64) int {
+func FunPart1(ranges []Range[uint64], ids []uint64) int {
+	ts := time.Now()
+	defer func() {
+		fmt.Printf("Part 1 took %s\n", time.Since(ts))
+	}()
+
 	sum := 0
 	tree := BuildBspTree(ranges, 1, RangeMedian)
 
@@ -26,7 +32,31 @@ func Part1(ranges []Range[uint64], ids []uint64) int {
 	return sum
 }
 
+func BoringPart1(ranges []Range[uint64], ids []uint64) int {
+	ts := time.Now()
+	defer func() {
+		fmt.Printf("Part 1 took %s\n", time.Since(ts))
+	}()
+
+	sum := 0
+
+	for _, id := range ids {
+		for _, r := range ranges {
+			if r.Contains(id) {
+				sum++
+				break
+			}
+		}
+	}
+	return sum
+}
+
 func Part2(ranges []Range[uint64]) uint64 {
+	ts := time.Now()
+	defer func() {
+		fmt.Printf("Part 2 took %s\n", time.Since(ts))
+	}()
+
 	var sum uint64
 	trimmedRanges := slices.Clone(ranges)
 	slices.SortFunc(trimmedRanges, RangeCmpByEnd)
